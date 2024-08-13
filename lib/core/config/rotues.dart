@@ -2,19 +2,31 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tic_tac_toe_with_supabase/core/enum/enum.dart';
 import 'package:tic_tac_toe_with_supabase/core/extensions/extensions.dart';
+import 'package:tic_tac_toe_with_supabase/presentation/screens/screens.dart';
 
 abstract final class Routes {
   static final routerConfig = GoRouter(
     initialLocation: Supabase.instance.client.auth.currentUser != null
         ? Paths.gameList.path
         : Paths.welcome.path,
-    routes: Paths.values
-        .map((path) => GoRoute(
-              name: path.name,
-              path: path.path,
-              builder: (context, state) => path.page,
-            ))
-        .toList(),
+    routes: [
+      for (var path in Paths.values)
+        if (path == Paths.game)
+          GoRoute(
+            name: Paths.game.name,
+            path: "${Paths.game.path}/:gameId",
+            builder: (context, state) {
+              final gameId = state.pathParameters['gameId']!;
+              return GameScreen(gameId: gameId);
+            },
+          )
+        else
+          GoRoute(
+            name: path.name,
+            path: path.path,
+            builder: (context, state) => path.page,
+          ),
+    ],
     errorBuilder: (context, state) {
       return Scaffold(
         appBar: AppBar(
@@ -25,8 +37,8 @@ abstract final class Routes {
           ),
         ),
         body: Center(
-          child: Text('Page not found ${state.fullPath}',
-              style: context.textTheme.labelLarge),
+          child:
+              Text(state.path.toString(), style: context.textTheme.labelLarge),
         ),
       );
     },

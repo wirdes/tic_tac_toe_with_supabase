@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'package:tic_tac_toe_with_supabase/core/enum/enum.dart';
 import 'package:tic_tac_toe_with_supabase/core/extensions/extensions.dart';
+import 'package:tic_tac_toe_with_supabase/core/extensions/string_extension.dart';
+import 'package:tic_tac_toe_with_supabase/infrastructure/models/game_room.dart';
 
 class GameListScreen extends StatefulWidget {
   const GameListScreen({super.key});
@@ -8,8 +12,100 @@ class GameListScreen extends StatefulWidget {
 }
 
 class _GameListScreenState extends State<GameListScreen> {
+  late final StreamSubscription<List<Map<String, dynamic>>> _subscription;
+  List<GameRoom> gameRooms = [];
+  Map<String, String> userNames = {};
+
+  void getGameRooms() async {
+    try {
+      final data = await context.games.select().eq('status', true);
+      gameRooms = data.map((e) => GameRoom.fromJson(e)).toList();
+      setState(() {});
+    } catch (e) {
+      if (mounted) {
+        context.showErrorSnackBar(e.toString());
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getGameRooms();
+    _subscription = context.games.stream(primaryKey: ['id']).listen(onChanges);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Game List'),
+        actions: [
+          ElevatedButton(
+            onPressed: () async {
+              await context.push(Paths.createGame);
+              getGameRooms();
+            },
+            child: const Icon(Icons.add),
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+        child: ListView.builder(
+          itemCount: gameRooms.length,
+          itemBuilder: (context, index) {
+            final gameRoom = gameRooms[index];
+            final color = gameRoom.boardColor.fromHex();
+            final TextStyle? titleStyle = context.textTheme.titleLarge
+                ?.apply(color: color.getTextColor());
+            final TextStyle? subtitleStyle = context.textTheme.titleSmall
+                ?.apply(color: color.getTextColor());
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Material(
+                borderRadius: BorderRadius.circular(8),
+                elevation: 4,
+                child: ListTile(
+                  title: Text(gameRoom.roomName, style: titleStyle),
+                  onTap: () async {
+                    context.push(Paths.game, query: '/${gameRoom.roomId}');
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  tileColor: color,
+                  subtitle: Text(
+                    'Board: ${gameRoom.boardType} - Win Condition: ${gameRoom.winCondition}',
+                    style: subtitleStyle,
+                  ),
+                  trailing: Icon(Icons.play_arrow, color: color.getTextColor()),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void onChanges(List<Map<String, dynamic>> data) {
+    try {
+      gameRooms = data
+          .map((e) => GameRoom.fromJson(e))
+          .toList()
+          .where((element) => element.status)
+          .toList();
+      setState(() {});
+    } catch (e) {
+      context.showErrorSnackBar(e.toString());
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }

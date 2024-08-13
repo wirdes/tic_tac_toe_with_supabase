@@ -172,5 +172,4 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
-
 // UPDATE game_rooms SET status = false WHERE 1 = 1;

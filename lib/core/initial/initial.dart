@@ -1,4 +1,3 @@
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tic_tac_toe_with_supabase/core/config/config.dart';
 

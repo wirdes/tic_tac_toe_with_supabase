@@ -165,7 +165,7 @@ class _GameCreateState extends State<GameCreate> {
                         if (context.mounted) {
                           setState(() => isLoading = false);
 
-                          await context.playerRoom.upsert(PlayerRoom(
+                          await context.upsertPlayerRoom(PlayerRoom(
                               roomId: room.roomId!,
                               playerId: context.userId!,
                               joinedAt: DateTime.now()));

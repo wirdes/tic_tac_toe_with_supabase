@@ -44,7 +44,9 @@ extension ContextExtension on BuildContext {
 
   SupabaseQueryBuilder get _games => _supabase.from('game_rooms');
   SupabaseQueryBuilder get _gameMoves => _supabase.from('game_moves');
-  SupabaseQueryBuilder get playerRoom => _supabase.from('player_room');
+  SupabaseQueryBuilder get _playerRoom => _supabase.from('player_room');
+
+  /// Rooms
   Future<GameRoom?> getGameRoom(String roomId) async {
     final res = await _games.select().eq('status', true).eq('room_id', roomId);
     if (res.isEmpty) return null;
@@ -75,6 +77,8 @@ extension ContextExtension on BuildContext {
     return GameRoom.fromJson(res.first);
   }
 
+  /// Game Moves
+
   Future<void> resetGame(String roomId) async {
     await _gameMoves.delete().eq('room_id', roomId);
   }
@@ -97,7 +101,34 @@ extension ContextExtension on BuildContext {
     String roomId,
     void Function(List<Map<String, dynamic>>)? onData,
   ) {
-    return _gameMoves.stream(primaryKey: ['id']).eq('room_id', roomId).listen(onData);
+    return _gameMoves
+        .stream(primaryKey: ['id'])
+        .eq('room_id', roomId)
+        .listen(onData);
+  }
+
+  /// Player Room
+
+  Future<List<PlayerRoom>?> getPlayerRoom(String roomId) async {
+    final res = await _playerRoom.select().eq('room_id', roomId);
+    if (res.isEmpty) return null;
+    final players = res.map((e) => PlayerRoom.fromJson(e)).toList();
+    players.sort((a, b) => a.joinedAt.compareTo(b.joinedAt));
+    return players;
+  }
+
+  Future<void> upsertPlayerRoom(PlayerRoom playerRoom) async {
+    await _playerRoom.upsert(playerRoom.toJson());
+  }
+
+  StreamSubscription<List<Map<String, dynamic>>> onChangesPlayerRoom(
+    String roomId,
+    void Function(List<Map<String, dynamic>>)? onData,
+  ) {
+    return _playerRoom
+        .stream(primaryKey: ['id'])
+        .eq('room_id', roomId)
+        .listen(onData);
   }
 
   String? get userId => auth.currentUser?.id;

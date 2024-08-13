@@ -72,11 +72,8 @@ class _GameListScreenState extends State<GameListScreen> {
                   key: ValueKey(gameRoom.roomId),
                   title: Text(gameRoom.roomName, style: titleStyle),
                   onTap: () async {
-                    final roomPlayers = (await context.playerRoom
-                            .select()
-                            .eq('room_id', gameRoom.roomId!))
-                        .map((e) => PlayerRoom.fromJson(e))
-                        .toList();
+                    final roomPlayers =
+                        await context.getPlayerRoom(gameRoom.roomId!) ?? [];
 
                     if (context.mounted && roomPlayers.length == 2) {
                       final iExist = roomPlayers.where(
@@ -89,7 +86,7 @@ class _GameListScreenState extends State<GameListScreen> {
                         return;
                       }
                     }
-                    await context.playerRoom.upsert(PlayerRoom(
+                    await context.upsertPlayerRoom(PlayerRoom(
                         roomId: gameRoom.roomId!,
                         playerId: context.userId!,
                         joinedAt: DateTime.now()));

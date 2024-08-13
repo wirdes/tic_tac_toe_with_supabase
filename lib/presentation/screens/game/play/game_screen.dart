@@ -34,10 +34,7 @@ class _GameScreenState extends State<GameScreen> {
     }
     getGameRoom();
 
-    _player = context.playerRoom
-        .stream(primaryKey: ['id'])
-        .eq('room_id', widget.gameId!)
-        .listen(onChangesPlayer);
+    _player = context.onChangesPlayerRoom(widget.gameId!, onChangesPlayer);
   }
 
   @override
@@ -151,10 +148,8 @@ class _GameScreenState extends State<GameScreen> {
       final game = await context.getGameRoom(widget.gameId!);
       gameRoom = game;
       if (mounted && gameRoom != null) {
-        final list =
-            await context.playerRoom.select().eq('room_id', gameRoom!.roomId!);
-        final players = list.map((e) => PlayerRoom.fromJson(e)).toList();
-        players.sort((a, b) => a.joinedAt.compareTo(b.joinedAt));
+        final players =
+            await context.getPlayerRoom(gameRoom!.roomId!) ?? <PlayerRoom>[];
         this.players = players;
       }
 

@@ -48,8 +48,8 @@ class GameMove {
 
   Future<GameMove?> insert(BuildContext context) async {
     try {
-      final returnData = await context.gameMoves.insert(toJson()).select();
-      final moves = returnData.map((e) => GameMove.fromJson(e)).toList();
+      final returnData = await context.insertGameMove(this);
+      final moves = returnData ?? [];
       moves.sort((a, b) => b.moveNumber.compareTo(a.moveNumber));
       return moves.first;
     } catch (e) {

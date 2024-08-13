@@ -126,6 +126,6 @@ class GameManager {
   Future<void> resetGame(BuildContext context) async {
     board = List.generate(boardSize, (_) => List.filled(boardSize, ''));
     lastMoves = null;
-    await context.gameMoves.delete().eq('room_id', roomId);
+    await context.resetGame(roomId);
   }
 }

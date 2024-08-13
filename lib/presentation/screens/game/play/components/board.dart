@@ -60,10 +60,8 @@ class _BoardState extends State<Board> {
 
   void getBoard() async {
     setState(() => isLoading = true);
-    final list =
-        await context.gameMoves.select().eq('room_id', gameManager.roomId);
-    final moves = list.map((e) => GameMove.fromJson(e)).toList();
-    for (var e in moves) {
+    final list = await context.getAllGameMoves(gameManager.roomId) ?? [];
+    for (var e in list) {
       gameManager.insertMove(e);
     }
     setState(() => isLoading = false);
@@ -74,10 +72,10 @@ class _BoardState extends State<Board> {
     super.initState();
     gameManager = widget.gameManager;
     getBoard();
-    _gameMove = context.gameMoves
-        .stream(primaryKey: ['id'])
-        .eq('room_id', gameManager.roomId)
-        .listen((data) => onChangesMove(data, context));
+    _gameMove = context.onChangesGameMoves(
+      gameManager.roomId,
+      (data) => onChangesMove(data, context),
+    );
     setStatus(status: 'initState');
   }
 

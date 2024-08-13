@@ -1,0 +1,27 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "tic_tac_toe_with_supabase",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--dart-define=URL=https://supa.merterim.dev",
+                "--dart-define=API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzIzMjM3MjAwLAogICJleHAiOiAxODgxMDAzNjAwCn0.PcyHoW2Tz0N5DxX9L0S-3Xr7EWhPr8QGeWToAS68TOc"
+            ]
+        },
+        {
+            "name": "tic_tac_toe_with_supabase (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "args": [
+                "--dart-define=URL=https://supa.merterim.dev",
+                "--dart-define=API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzIzMjM3MjAwLAogICJleHAiOiAxODgxMDAzNjAwCn0.PcyHoW2Tz0N5DxX9L0S-3Xr7EWhPr8QGeWToAS68TOc"
+            ]
+        }
+    ]
+}

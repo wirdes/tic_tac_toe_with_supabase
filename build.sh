@@ -1,0 +1,2 @@
+flutter build apk --release  --dart-define=URL=https://supa.merterim.dev --dart-define=API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzIzMjM3MjAwLAogICJleHAiOiAxODgxMDAzNjAwCn0.PcyHoW2Tz0N5DxX9L0S-3Xr7EWhPr8QGeWToAS68TOc
+           

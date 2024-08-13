@@ -1,24 +1,19 @@
 import 'package:go_router/go_router.dart';
-import 'package:tic_tac_toe_with_supabase/core/database/database.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tic_tac_toe_with_supabase/core/enum/enum.dart';
 import 'package:tic_tac_toe_with_supabase/core/extensions/extensions.dart';
 
 abstract final class Routes {
-  static GlobalKey<NavigatorState> rootNavigatorKey =
-      GlobalKey<NavigatorState>();
-
   static final routerConfig = GoRouter(
-    navigatorKey: rootNavigatorKey,
-    initialLocation:
-        Database().hasName() ? Paths.gameList.path : Paths.welcome.path,
+    initialLocation: Supabase.instance.client.auth.currentUser != null
+        ? Paths.gameList.path
+        : Paths.welcome.path,
     routes: Paths.values
-        .map(
-          (path) => GoRoute(
-            name: path.name,
-            path: path.path,
-            builder: (context, state) => path.page,
-          ),
-        )
+        .map((path) => GoRoute(
+              name: path.name,
+              path: path.path,
+              builder: (context, state) => path.page,
+            ))
         .toList(),
     errorBuilder: (context, state) {
       return Scaffold(

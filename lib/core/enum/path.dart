@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:tic_tac_toe_with_supabase/presentation/screens/screens.dart';
 
 enum Paths {
-  welcome('/home', SizedBox()),
+  welcome('/home', WelcomeScreen()),
   gameList('/game-list', SizedBox()),
   createGame('/create-game', SizedBox()),
   game('/game-screen', SizedBox()),

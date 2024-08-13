@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:tic_tac_toe_with_supabase/core/enum/enum.dart';
 import 'package:tic_tac_toe_with_supabase/core/extensions/extensions.dart';
-import 'package:tic_tac_toe_with_supabase/core/extensions/string_extension.dart';
 import 'package:tic_tac_toe_with_supabase/infrastructure/models/game_room.dart';
+import 'package:tic_tac_toe_with_supabase/infrastructure/models/player_room.dart';
 
 class GameListScreen extends StatefulWidget {
   const GameListScreen({super.key});
@@ -18,7 +18,7 @@ class _GameListScreenState extends State<GameListScreen> {
 
   void getGameRooms() async {
     try {
-      final data = await context.games.select().eq('status', true);
+      final data = await context.getRooms();
       gameRooms = data.map((e) => GameRoom.fromJson(e)).toList();
       setState(() {});
     } catch (e) {
@@ -32,11 +32,12 @@ class _GameListScreenState extends State<GameListScreen> {
   void initState() {
     super.initState();
     getGameRooms();
-    _subscription = context.games.stream(primaryKey: ['id']).listen(onChanges);
+    _subscription = context.onChangesRooms(onChanges);
   }
 
   @override
   Widget build(BuildContext context) {
+    getGameRooms();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Game List'),
@@ -68,8 +69,30 @@ class _GameListScreenState extends State<GameListScreen> {
                 borderRadius: BorderRadius.circular(8),
                 elevation: 4,
                 child: ListTile(
+                  key: ValueKey(gameRoom.roomId),
                   title: Text(gameRoom.roomName, style: titleStyle),
                   onTap: () async {
+                    final roomPlayers = (await context.playerRoom
+                            .select()
+                            .eq('room_id', gameRoom.roomId!))
+                        .map((e) => PlayerRoom.fromJson(e))
+                        .toList();
+
+                    if (context.mounted && roomPlayers.length == 2) {
+                      final iExist = roomPlayers.where(
+                          (element) => element.playerId == context.userId);
+                      if (iExist.isEmpty) {
+                        context.showErrorSnackBar('Room is full');
+                        return;
+                      } else {
+                        context.push(Paths.game, query: '/${gameRoom.roomId}');
+                        return;
+                      }
+                    }
+                    await context.playerRoom.upsert(PlayerRoom(
+                        roomId: gameRoom.roomId!,
+                        playerId: context.userId!,
+                        joinedAt: DateTime.now()));
                     context.push(Paths.game, query: '/${gameRoom.roomId}');
                   },
                   shape: RoundedRectangleBorder(
@@ -80,7 +103,8 @@ class _GameListScreenState extends State<GameListScreen> {
                     'Board: ${gameRoom.boardType} - Win Condition: ${gameRoom.winCondition}',
                     style: subtitleStyle,
                   ),
-                  trailing: Icon(Icons.play_arrow, color: color.getTextColor()),
+                  trailing: Icon(Icons.arrow_forward_ios_rounded,
+                      color: color.getTextColor()),
                 ),
               ),
             );
@@ -90,22 +114,18 @@ class _GameListScreenState extends State<GameListScreen> {
     );
   }
 
-  void onChanges(List<Map<String, dynamic>> data) {
-    try {
-      gameRooms = data
-          .map((e) => GameRoom.fromJson(e))
-          .toList()
-          .where((element) => element.status)
-          .toList();
-      setState(() {});
-    } catch (e) {
-      context.showErrorSnackBar(e.toString());
-    }
+  void onChanges(data) => setState(() {});
+
+  @override
+  void activate() {
+    super.activate();
+    getGameRooms();
+    _subscription = context.onChangesRooms(onChanges);
   }
 
   @override
-  void dispose() {
+  void deactivate() {
+    super.deactivate();
     _subscription.cancel();
-    super.dispose();
   }
 }

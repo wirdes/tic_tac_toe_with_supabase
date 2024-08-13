@@ -1,7 +1,10 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tic_tac_toe_with_supabase/core/enum/enum.dart';
 import 'package:tic_tac_toe_with_supabase/core/extensions/extensions.dart';
 import 'package:tic_tac_toe_with_supabase/infrastructure/models/game_room.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:tic_tac_toe_with_supabase/infrastructure/models/player_room.dart';
+
+import 'component/block_picker.dart';
 
 class GameCreate extends StatefulWidget {
   const GameCreate({super.key});
@@ -38,7 +41,7 @@ class _GameCreateState extends State<GameCreate> {
                 onTap: pickColor,
                 child: SizedBox(
                   width: 40,
-                  height: 36,
+                  height: 40,
                   child: Icon(Icons.edit, color: boardColor.getTextColor()),
                 ),
               ),
@@ -143,25 +146,39 @@ class _GameCreateState extends State<GameCreate> {
                       final gameRoom = GameRoom(
                         roomName: roomName,
                         boardColor: boardColor.toHex(),
-                        boardType: _boardType.name,
+                        boardType: _boardType,
                         winCondition: winCondition,
                         createdBy: context.userId!,
                         status: true,
                       );
                       setState(() => isLoading = true);
                       try {
-                        final returnRomm = (await context.games
-                                .insert(gameRoom.toJson(), defaultToNull: false)
-                                .select())
-                            .first;
+                        final room = await context.insertGameRoom(gameRoom);
+                        if (room == null) {
+                          if (context.mounted) {
+                            setState(() => isLoading = false);
+                            context.showErrorSnackBar('Failed to create room');
+                          }
+                          return;
+                        }
+
                         if (context.mounted) {
                           setState(() => isLoading = false);
-                          final room = GameRoom.fromJson(returnRomm);
+
+                          await context.playerRoom.upsert(PlayerRoom(
+                              roomId: room.roomId!,
+                              playerId: context.userId!,
+                              joinedAt: DateTime.now()));
+
                           context.push(Paths.game, query: '/${room.roomId}');
+                        }
+                      } on PostgrestException catch (e) {
+                        if (context.mounted) {
+                          context.showErrorSnackBar(e.message);
                         }
                       } catch (e) {
                         if (context.mounted) {
-                          context.showErrorSnackBar('Error creating game');
+                          context.showErrorSnackBar(e.toString());
                         }
                       }
                     },
@@ -190,8 +207,6 @@ class _GameCreateState extends State<GameCreate> {
     });
   }
 
-  void changeColor(Color color) => setState(() => boardColor = color);
-
   void pickColor() {
     showDialog(
       context: context,
@@ -200,18 +215,16 @@ class _GameCreateState extends State<GameCreate> {
           title: const Text('Pick a color!'),
           content: SingleChildScrollView(
             child: BlockPicker(
-              pickerColor: Colors.white,
-              onColorChanged: changeColor,
+              availableColors: const [
+                Color(0xFF5E76BF),
+                Color(0xFFF7A278),
+                Color(0xFFAAB9BF),
+                Color(0xFFF2CDC4),
+                Color(0xFF8C7672),
+              ],
+              pickColor: (color) => setState(() => boardColor = color),
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Got it'),
-            ),
-          ],
         );
       },
     );

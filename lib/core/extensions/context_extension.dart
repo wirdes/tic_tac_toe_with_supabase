@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:core';
+
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tic_tac_toe_with_supabase/core/enum/enum.dart';
+import 'package:tic_tac_toe_with_supabase/infrastructure/models/models.dart';
 
 extension ContextExtension on BuildContext {
   ThemeData get theme => Theme.of(this);
@@ -23,13 +26,59 @@ extension ContextExtension on BuildContext {
     return router.push("${path.path}${query ?? ''}", extra: extra);
   }
 
-  void go(Paths path, {Object? extra}) => router.go(path.path, extra: extra);
+  void go(Paths path, {Object? extra, String? query}) =>
+      router.go("${path.path}${query ?? ''}", extra: extra);
   void pop<T extends Object?>([T? result]) => router.pop(result);
   SupabaseClient get _supabase => Supabase.instance.client;
   GoTrueClient get auth => _supabase.auth;
-  SupabaseQueryBuilder get profile => _supabase.from('profiles');
-  SupabaseQueryBuilder get games => _supabase.from('game_rooms');
+  SupabaseQueryBuilder get _profile => _supabase.from('profiles');
+  Future<Profile?> userProfile(String playerId) async {
+    try {
+      final res = await _profile.select().eq('id', playerId);
+      if (res.isEmpty) return null;
+      return Profile.fromJson(res.first);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  SupabaseQueryBuilder get _games => _supabase.from('game_rooms');
   SupabaseQueryBuilder get gameMoves => _supabase.from('game_moves');
+  SupabaseQueryBuilder get playerRoom => _supabase.from('player_room');
+  Future<GameRoom?> getGameRoom(String roomId) async {
+    final res = await _games.select().eq('status', true).eq('room_id', roomId);
+    if (res.isEmpty) return null;
+    final gameRoom = GameRoom.fromJson(res.first);
+    return gameRoom;
+  }
+
+  Future<void> setStatusRoom({
+    required String roomId,
+    bool status = false,
+  }) async {
+    await _games.update({'status': status}).eq('room_id', roomId);
+  }
+
+  StreamSubscription<List<Map<String, dynamic>>> onChangesRooms(
+    void Function(List<Map<String, dynamic>>)? onData,
+  ) {
+    return _games.stream(primaryKey: ['id']).eq('status', true).listen(onData);
+  }
+
+  PostgrestFilterBuilder<List<Map<String, dynamic>>> getRooms() {
+    return _games.select().eq('status', true);
+  }
+
+  Future<GameRoom?> insertGameRoom(GameRoom gameRoom) async {
+    final res = await _games.insert(gameRoom.toJson()).select();
+    if (res.isEmpty) return null;
+    return GameRoom.fromJson(res.first);
+  }
+
+  Future<void> resetGame(String roomId) async {
+    await gameMoves.delete().eq('room_id', roomId);
+  }
+
   String? get userId => auth.currentUser?.id;
 
   ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? showSnackBar(

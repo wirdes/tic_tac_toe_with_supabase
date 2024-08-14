@@ -24,4 +24,9 @@ enum BoardType {
         return 5;
     }
   }
+
+  @override
+  String toString() {
+    return name;
+  }
 }

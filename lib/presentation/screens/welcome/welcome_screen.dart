@@ -38,7 +38,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 TextField(
                   controller: emailController,
                   decoration: const InputDecoration(
-                    hintStyle: TextStyle(color: Colors.black),
                     labelText: "Name",
                     border: OutlineInputBorder(),
                   ),

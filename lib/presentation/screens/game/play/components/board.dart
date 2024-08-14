@@ -120,32 +120,40 @@ class _BoardState extends State<Board> {
       absorbing: isLoading,
       child: Scaffold(
         body: Material(
-          color: gameManager.boardColor,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text(
-                _status,
-                style: context.textTheme.titleLarge?.apply(
-                  color: gameManager.boardColor.getTextColor(),
-                ),
-              ),
+              Text(_status, style: context.textTheme.titleLarge),
               const SizedBox(height: 20),
               AspectRatio(
                 aspectRatio: 1,
                 child: Container(
-                  padding: const EdgeInsets.all(16),
-                  color: gameManager.boardColor,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        gameManager.boardColor.getTextColor(),
+                        gameManager.boardColor,
+                        gameManager.boardColor,
+                        gameManager.boardColor.getTextColor()
+                      ],
+                    ),
+                  ),
                   child: Stack(
                     children: [
-                      GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: gameManager.boardSize,
+                      if (!isLoading)
+                        GridView.builder(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: gameManager.boardSize,
+                          ),
+                          itemBuilder: _buildGridCell,
+                          itemCount:
+                              gameManager.boardSize * gameManager.boardSize,
                         ),
-                        itemBuilder: _buildGridCell,
-                        itemCount:
-                            gameManager.boardSize * gameManager.boardSize,
-                      ),
                       if (isLoading)
                         const Center(
                           child: CircularProgressIndicator(),
@@ -167,14 +175,21 @@ class _BoardState extends State<Board> {
     int col = index % gameManager.boardSize;
     return GestureDetector(
       onTap: () => _onCellTap(row, col, context),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: gameManager.boardColor.getTextColor()),
-        ),
-        child: Center(
-          child: Text(gameManager.board[row][col],
-              style: context.textTheme.headlineMedium
-                  ?.apply(color: gameManager.boardColor.getTextColor())),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: gameManager.boardColor),
+            borderRadius: BorderRadius.circular(8),
+            color: gameManager.boardColor.getTextColor(),
+          ),
+          child: Center(
+            child: Text(gameManager.board[row][col],
+                style: context.textTheme.displayMedium?.apply(
+                  color: gameManager.boardColor,
+                  fontWeightDelta: 5,
+                )),
+          ),
         ),
       ),
     );

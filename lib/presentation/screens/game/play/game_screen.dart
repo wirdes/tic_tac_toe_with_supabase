@@ -58,13 +58,11 @@ class _GameScreenState extends State<GameScreen> {
         ),
       );
     }
-    final style = context.textTheme.titleLarge?.apply(
-      color: gameRoom!.boardColor.fromHex().getTextColor(),
-    );
+
     return Scaffold(
-      backgroundColor: gameRoom!.boardColor.fromHex(),
       appBar: AppBar(
-        title: Text('Game ${gameRoom!.roomName}'),
+        centerTitle: true,
+        title: Text(gameRoom!.roomName),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(Paths.gameList),
@@ -74,41 +72,47 @@ class _GameScreenState extends State<GameScreen> {
         children: [
           Expanded(
             flex: 1,
-            child: Column(
-              children: [
-                Text('Players', style: style),
-                Column(children: [
-                  for (var player in players)
-                    ListTile(
-                      leading: gameRoom!.createdBy == player.playerId
-                          ? const Icon(Icons.star, color: Colors.yellow)
-                          : null,
-                      title: Text(
-                        '${playerNames[player.playerId]!} ${context.userId == player.playerId ? '(You)' : ''} ',
-                        style: style?.apply(
-                          fontSizeDelta: -3,
-                          fontWeightDelta:
-                              context.userId == player.playerId ? 2 : 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Players', style: context.textTheme.headlineMedium),
+                  Column(children: [
+                    for (var player in players)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Material(
+                          elevation: 4,
+                          child: ListTile(
+                            leading: gameRoom!.createdBy == player.playerId
+                                ? const Icon(Icons.star, color: Colors.yellow)
+                                : const Icon(Icons.person_outline,
+                                    color: Colors.blue),
+                            title: Text(
+                              '${playerNames[player.playerId]!} ${context.userId == player.playerId ? '(You)' : ''} ',
+                              style: context.textTheme.titleLarge,
+                            ),
+                            subtitle: Text(
+                                gameRoom!.createdBy == player.playerId
+                                    ? 'X'
+                                    : 'O',
+                                style: context.textTheme.titleSmall),
+                          ),
                         ),
                       ),
-                      subtitle: Text(
-                        gameRoom!.createdBy == player.playerId ? 'X' : 'O',
-                        style: context.textTheme.titleSmall?.apply(
-                          color: gameRoom!.boardColor.fromHex().getTextColor(),
-                        ),
-                      ),
-                    ),
-                ]),
-              ],
+                  ]),
+                ],
+              ),
             ),
           ),
           if (players.length < 2)
             Expanded(
-                flex: 3,
+                flex: 2,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Waiting for player to join', style: style),
+                    const Text('Waiting for player to join'),
                     const SizedBox(height: 16),
                     CircularProgressIndicator(
                         color: gameRoom!.boardColor.fromHex().getTextColor()),
@@ -116,7 +120,7 @@ class _GameScreenState extends State<GameScreen> {
                 ))
           else
             Expanded(
-              flex: 3,
+              flex: 2,
               child: Board(
                   gameManager: GameManager(
                 boardSize: gameRoom!.boardType.size,

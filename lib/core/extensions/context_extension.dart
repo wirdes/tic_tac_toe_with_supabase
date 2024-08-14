@@ -26,13 +26,23 @@ extension ContextExtension on BuildContext {
     return router.push("${path.path}${query ?? ''}", extra: extra);
   }
 
-  void go(Paths path, {Object? extra, String? query}) =>
-      router.go("${path.path}${query ?? ''}", extra: extra);
+  void go(
+    Paths path, {
+    Object? extra,
+    String? query,
+  }) {
+    router.go("${path.path}${query ?? ''}", extra: extra);
+  }
+
   void pop<T extends Object?>([T? result]) => router.pop(result);
+  
   SupabaseClient get _supabase => Supabase.instance.client;
   GoTrueClient get auth => _supabase.auth;
   SupabaseQueryBuilder get _profile => _supabase.from('profiles');
-  Future<Profile?> userProfile(String playerId) async {
+
+  Future<Profile?> userProfile(
+    String playerId,
+  ) async {
     try {
       final res = await _profile.select().eq('id', playerId);
       if (res.isEmpty) return null;

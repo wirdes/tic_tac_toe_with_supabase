@@ -46,6 +46,8 @@ class _BoardState extends State<Board> {
                   await gameManager.resetGame(context);
                   setState(() => isLoading = false);
                   Navigator.of(context).pop();
+                  context.router.pushReplacement(
+                      '${Paths.game.path}/${gameManager.roomId}');
                 }
               } catch (e) {
                 context.showErrorSnackBar(e.toString());

@@ -74,23 +74,22 @@ class _GameListScreenState extends State<GameListScreen> {
                   onTap: () async {
                     final roomPlayers =
                         await context.getPlayerRoom(gameRoom.roomId!) ?? [];
-
-                    if (context.mounted && roomPlayers.length == 2) {
-                      final iExist = roomPlayers.where(
-                          (element) => element.playerId == context.userId);
-                      if (iExist.isEmpty) {
+                    final iExist =
+                        roomPlayers.where((e) => e.playerId == context.userId);
+                    if (iExist.isNotEmpty) {
+                      context.push(Paths.game, query: '/${gameRoom.roomId}');
+                      return;
+                    } else {
+                      if (roomPlayers.length >= 2) {
                         context.showErrorSnackBar('Room is full');
                         return;
-                      } else {
-                        context.push(Paths.game, query: '/${gameRoom.roomId}');
-                        return;
                       }
+                      await context.insert(PlayerRoom(
+                          roomId: gameRoom.roomId!,
+                          playerId: context.userId!,
+                          joinedAt: DateTime.now()));
+                      context.push(Paths.game, query: '/${gameRoom.roomId}');
                     }
-                    await context.upsertPlayerRoom(PlayerRoom(
-                        roomId: gameRoom.roomId!,
-                        playerId: context.userId!,
-                        joinedAt: DateTime.now()));
-                    context.push(Paths.game, query: '/${gameRoom.roomId}');
                   },
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

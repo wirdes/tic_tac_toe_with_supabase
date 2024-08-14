@@ -165,10 +165,13 @@ class _GameCreateState extends State<GameCreate> {
                         if (context.mounted) {
                           setState(() => isLoading = false);
 
-                          await context.upsertPlayerRoom(PlayerRoom(
+                          await context.insert(
+                            PlayerRoom(
                               roomId: room.roomId!,
                               playerId: context.userId!,
-                              joinedAt: DateTime.now()));
+                              joinedAt: DateTime.now(),
+                            ),
+                          );
 
                           context.push(Paths.game, query: '/${room.roomId}');
                         }

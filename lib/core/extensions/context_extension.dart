@@ -117,8 +117,8 @@ extension ContextExtension on BuildContext {
     return players;
   }
 
-  Future<void> upsertPlayerRoom(PlayerRoom playerRoom) async {
-    await _playerRoom.upsert(playerRoom.toJson());
+  Future<void> insert(PlayerRoom playerRoom) async {
+    await _playerRoom.insert(playerRoom.toJson());
   }
 
   StreamSubscription<List<Map<String, dynamic>>> onChangesPlayerRoom(

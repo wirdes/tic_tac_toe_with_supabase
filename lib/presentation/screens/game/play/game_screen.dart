@@ -33,8 +33,6 @@ class _GameScreenState extends State<GameScreen> {
       throw Exception('Game Id is required');
     }
     getGameRoom();
-
-    _player = context.onChangesPlayerRoom(widget.gameId!, onChangesPlayer);
   }
 
   @override
@@ -169,10 +167,9 @@ class _GameScreenState extends State<GameScreen> {
       for (var element in players) {
         await getPlayerName(element.playerId);
       }
-
       isLoaded = true;
-
       setState(() {});
+      _player = context.onChangesPlayerRoom(widget.gameId!, onChangesPlayer);
     } on PostgrestException catch (e) {
       if (mounted) {
         context.showErrorSnackBar(e.message);

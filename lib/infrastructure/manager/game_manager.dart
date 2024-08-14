@@ -33,24 +33,23 @@ class GameManager {
   String get player1Id => player1.keys.first;
   String get player2Id => player2.keys.first;
 
-  String get currentPlayerName =>
-      lastMoves?.playerId == player2Id ? player1Name : player2Name;
-  String get currentPlayerId =>
-      lastMoves?.playerId == player2Id ? player1Id : player2Id;
-  String get currentPlayerSymbol =>
-      lastMoves?.playerId == player2Id ? 'O' : 'X';
+  String get lastId => lastMoves?.playerId ?? player2Id;
+
+  String get currentId => lastId == player1Id ? player2Id : player1Id;
+  String get currentName => currentId == player1Id ? player1Name : player2Name;
+  String get currentSymbol => currentId == player1Id ? 'X' : 'O';
 
   Future<void> makeMove(int row, int col, BuildContext context) async {
     if (board[row][col] != '') {
       context.showErrorSnackBar('Cell is not empty');
       return;
     }
-    final data = currentPlayerSymbol;
+    final data = currentSymbol;
     final lastMove = await GameMove(
             roomId: roomId,
             row: row,
             col: col,
-            playerId: currentPlayerId,
+            playerId: currentId,
             moveNumber:
                 lastMoves?.moveNumber != null ? lastMoves!.moveNumber + 1 : 1,
             movedAt: DateTime.now(),
@@ -66,11 +65,8 @@ class GameManager {
       for (int j = 0; j <= boardSize - winLengths; j++) {
         final dummy = List.generate(winLengths, (k) => board[i][j + k]);
         final first = dummy.first;
-
         if (dummy.every((cell) => cell == first && first != '')) {
-          return first == player1Name
-              ? GameState.winPlayer1
-              : GameState.winPlayer2;
+          return first == 'X' ? GameState.winPlayer1 : GameState.winPlayer2;
         }
       }
     }
@@ -79,9 +75,7 @@ class GameManager {
         final dummy = List.generate(winLengths, (k) => board[i + k][j]);
         final first = dummy.first;
         if (dummy.every((cell) => cell == first && first != '')) {
-          return first == player1Name
-              ? GameState.winPlayer1
-              : GameState.winPlayer2;
+          return first == 'X' ? GameState.winPlayer1 : GameState.winPlayer2;
         }
       }
     }
@@ -91,9 +85,7 @@ class GameManager {
         final dummy = List.generate(winLengths, (k) => board[i + k][j + k]);
         final first = dummy.first;
         if (dummy.every((cell) => cell == first && first != '')) {
-          return first == player1Name
-              ? GameState.winPlayer1
-              : GameState.winPlayer2;
+          return first == 'X' ? GameState.winPlayer1 : GameState.winPlayer2;
         }
       }
     }
@@ -103,9 +95,7 @@ class GameManager {
         final first = dummy.first;
 
         if (dummy.every((cell) => cell == first && first != '')) {
-          return first == player1Name
-              ? GameState.winPlayer1
-              : GameState.winPlayer2;
+          return first == 'X' ? GameState.winPlayer1 : GameState.winPlayer2;
         }
       }
     }
@@ -124,8 +114,8 @@ class GameManager {
   }
 
   Future<void> resetGame(BuildContext context) async {
+    await context.resetGame(roomId);
     board = List.generate(boardSize, (_) => List.filled(boardSize, ''));
     lastMoves = null;
-    await context.resetGame(roomId);
   }
 }

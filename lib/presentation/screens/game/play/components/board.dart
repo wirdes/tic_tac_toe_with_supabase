@@ -183,14 +183,14 @@ class _BoardState extends State<Board> {
       debugPrint('${gameManager.lastMoves} $status');
     }
     setState(() {
-      _status = gameManager.currentPlayerId == context.userId
+      _status = gameManager.currentId == context.userId
           ? "Your Turn"
           : "Opponent's Turn";
     });
   }
 
   void _onCellTap(int row, int col, BuildContext context) async {
-    if (context.userId != gameManager.currentPlayerId) {
+    if (context.userId != gameManager.currentId) {
       context.showErrorSnackBar('Not your turn');
       return;
     }

@@ -24,7 +24,7 @@ class _GameScreenState extends State<GameScreen> {
   GameRoom? gameRoom;
   List<GameMove> gameMoves = [];
   List<PlayerRoom> players = [];
-  final Map<String, String> _cache = {};
+  final Map<String, String> playerNames = {};
 
   @override
   void initState() {
@@ -74,42 +74,61 @@ class _GameScreenState extends State<GameScreen> {
       ),
       body: Column(
         children: [
-          const SizedBox(height: 16),
-          Text('Players', style: style),
-          SizedBox(
-            height: 120,
-            child: Column(children: [
-              for (var player in players)
-                ListTile(
-                  title: Text(
-                      '${_cache[player.playerId]!} (${context.userId == player.playerId ? 'You' : 'Opponent'})',
-                      style: style?.apply(
-                        fontSizeDelta: -3,
-                      )),
-                )
-            ]),
+          Expanded(
+            flex: 1,
+            child: Column(
+              children: [
+                Text('Players', style: style),
+                Column(children: [
+                  for (var player in players)
+                    ListTile(
+                      leading: gameRoom!.createdBy == player.playerId
+                          ? const Icon(Icons.star, color: Colors.yellow)
+                          : null,
+                      title: Text(
+                        '${playerNames[player.playerId]!} ${context.userId == player.playerId ? '(You)' : ''} ',
+                        style: style?.apply(
+                          fontSizeDelta: -3,
+                          fontWeightDelta:
+                              context.userId == player.playerId ? 2 : 0,
+                        ),
+                      ),
+                      subtitle: Text(
+                        gameRoom!.createdBy == player.playerId ? 'X' : 'O',
+                        style: context.textTheme.titleSmall?.apply(
+                          color: gameRoom!.boardColor.fromHex().getTextColor(),
+                        ),
+                      ),
+                    ),
+                ]),
+              ],
+            ),
           ),
           if (players.length < 2)
             Expanded(
+                flex: 3,
                 child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Waiting for player to join', style: style),
-                const SizedBox(height: 16),
-                CircularProgressIndicator(
-                    color: gameRoom!.boardColor.fromHex().getTextColor()),
-              ],
-            ))
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Waiting for player to join', style: style),
+                    const SizedBox(height: 16),
+                    CircularProgressIndicator(
+                        color: gameRoom!.boardColor.fromHex().getTextColor()),
+                  ],
+                ))
           else
             Expanded(
+              flex: 3,
               child: Board(
                   gameManager: GameManager(
                 boardSize: gameRoom!.boardType.size,
                 winLengths: gameRoom!.winCondition,
                 boardColor: gameRoom!.boardColor.fromHex(),
-                player1: {players[0].playerId: _cache[players[0].playerId]!},
+                player1: {
+                  players[0].playerId: playerNames[players[0].playerId]!
+                },
                 player2: {
-                  players[1].playerId: _cache[players[1].playerId]!,
+                  players[1].playerId: playerNames[players[1].playerId]!,
                 },
                 roomId: gameRoom!.roomId!,
               )),
@@ -120,10 +139,10 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void onChangesPlayer(List<Map<String, dynamic>> data) async {
-    final players = data.map((e) => PlayerRoom.fromJson(e)).toList();
-    players.sort((a, b) => a.joinedAt.compareTo(b.joinedAt));
-    this.players = players;
     setState(() => isLoaded = false);
+    final players = data.map((e) => PlayerRoom.fromJson(e)).toList();
+    players.sort((a, b) => gameRoom?.createdBy == a.playerId ? -1 : 1);
+    this.players = players;
     for (var element in players) {
       await getPlayerName(element.playerId);
     }
@@ -136,13 +155,6 @@ class _GameScreenState extends State<GameScreen> {
     super.dispose();
   }
 
-  Future<String> getPlayerName(String playerId) async {
-    final data = await context.userProfile(playerId);
-    final playerName = data?.username ?? 'Unknown';
-    _cache[playerId] = playerName;
-    return playerName;
-  }
-
   void getGameRoom() async {
     try {
       final game = await context.getGameRoom(widget.gameId!);
@@ -150,6 +162,7 @@ class _GameScreenState extends State<GameScreen> {
       if (mounted && gameRoom != null) {
         final players =
             await context.getPlayerRoom(gameRoom!.roomId!) ?? <PlayerRoom>[];
+        players.sort((a, b) => gameRoom!.createdBy == a.playerId ? -1 : 1);
         this.players = players;
       }
 
@@ -170,6 +183,11 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
   }
-}
 
-// UPDATE game_rooms SET status = false WHERE 1 = 1;
+  Future<String> getPlayerName(String playerId) async {
+    final data = await context.userProfile(playerId);
+    final playerName = data?.username ?? 'Unknown';
+    playerNames[playerId] = playerName;
+    return playerName;
+  }
+}

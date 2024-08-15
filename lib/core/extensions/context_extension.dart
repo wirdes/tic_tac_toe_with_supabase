@@ -35,10 +35,14 @@ extension ContextExtension on BuildContext {
   }
 
   void pop<T extends Object?>([T? result]) => router.pop(result);
-  
+
   SupabaseClient get _supabase => Supabase.instance.client;
   GoTrueClient get auth => _supabase.auth;
   SupabaseQueryBuilder get _profile => _supabase.from('profiles');
+  Future<void> signOut() async {
+    await auth.signOut();
+    
+  }
 
   Future<Profile?> userProfile(
     String playerId,

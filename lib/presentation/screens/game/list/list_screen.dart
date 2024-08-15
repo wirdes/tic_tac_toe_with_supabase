@@ -39,15 +39,22 @@ class _GameListScreenState extends State<GameListScreen> {
   Widget build(BuildContext context) {
     getGameRooms();
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await context.push(Paths.createGame);
+          getGameRooms();
+        },
+        child: const Icon(Icons.add),
+      ),
       appBar: AppBar(
         title: const Text('Game List'),
         actions: [
           ElevatedButton(
             onPressed: () async {
-              await context.push(Paths.createGame);
-              getGameRooms();
+              await context.signOut();
+              await context.router.pushReplacement(Paths.welcome.path);
             },
-            child: const Icon(Icons.add),
+            child: const Icon(Icons.logout),
           ),
           const SizedBox(width: 16),
         ],
